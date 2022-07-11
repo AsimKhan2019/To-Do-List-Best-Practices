@@ -259,3 +259,102 @@ export default class Storage {
   </div>
 </body>
 </html>
+
+
+body {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 10px 10px;
+  font-family: 'Open Sans', 'Lucida Grande', tahoma, verdana, arial, sans-serif;
+  color: #545862;
+}
+
+.center {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px 4px rgb(0 0 0 / 15%);
+  margin: auto;
+}
+
+.reading input {
+  flex-grow: 2;
+  border: none;
+  outline: none;
+  font-style: italic;
+}
+
+.listing {
+  padding: 0;
+  border-bottom: 0;
+}
+
+.footing {
+  padding: 0;
+  border-bottom: 0;
+}
+
+.footing button {
+  flex-grow: 2;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+header,
+section {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 10px;
+}
+
+#formTask {
+  width: 100%;
+  display: flex;
+}
+
+#formTask button {
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+#task {
+  flex-grow: 2;
+}
+
+#list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0;
+  width: 100%;
+  margin: 0;
+}
+
+#list li {
+  display: flex;
+  flex-direction: row;
+  padding: 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+#list li input[type='text'] {
+  flex-grow: 2;
+  border: none;
+}
+
+#list li img {
+  height: 15px;
+}
+
+#list li a {
+  cursor: pointer;
+}
+
