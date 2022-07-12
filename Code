@@ -1,0 +1,360 @@
+export default class Data {
+  constructor(description, completed = false, index) {
+    this.description = description;
+    this.completed = completed;
+    this.index = index;
+  }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To Do List</title>
+</head>
+<body>
+  <div class="center">
+    <header class="heading">
+      <span>Today's To Do List</span>
+      <a><img id="imageRefresh" src="./refresh.png" alt="refresh button comes here" title="refresh button"/></a>
+    </header>
+    
+    <section class="reading">
+      <!-- <h6>Add Chores</h6> -->
+      <form id="formTask">
+        <input id="task" type="text" placeholder="Add to your list..." />
+        <button type="submit" id="addTask">
+          <img id="imageEnter" src="./enter.png" alt="enter button comes here" title="enter button"/>
+        </button>
+      </form>
+      
+    </section>
+  
+    <section class="listing">
+      <!--<h6>List</h6>-->
+      <ul id="list">
+      </ul>
+    </section>
+
+    <section class="footing">
+      <!--<h6>Footer</h6>-->
+      <button id="remove" type="submit">Clear all completed</button>
+    </section>
+  </div>
+</body>
+</html>
+
+import './style.css';
+import refresh from './refresh.png';
+import enter from './enter.png';
+import operations from './operations.js';
+import Data from './Data.js';
+import Storage from './storage.js';
+
+const getImage = () => {
+  const imageHolder = document.getElementById('imageRefresh');
+  imageHolder.src = refresh;
+
+  const imageEnter = document.getElementById('imageEnter');
+  imageEnter.src = enter;
+};
+
+const btnSubmit = document.getElementById('addTask');
+
+btnSubmit.addEventListener('click', () => {
+  let index = 0;
+  let description = ' ';
+  const isChecked = false;
+  let taskListObj = [];
+
+  description = document.getElementById('task').value;
+
+  taskListObj = Storage.getData('taskList');
+
+  if (taskListObj !== null && taskListObj.length > 0) {
+    const lastObject = taskListObj[taskListObj.length - 1];
+    index = lastObject.index + 1;
+  } else {
+    index = 1;
+    taskListObj = [];
+  }
+
+  const addTasks = new Data(description, isChecked, index);
+  operations.addToList(addTasks);
+
+  document.getElementById('task').value = '';
+});
+
+const btnRemove = document.getElementById('remove');
+
+btnRemove.addEventListener('click', () => {
+  operations.removeFromList();
+});
+
+getImage();
+operations.getTaskList();
+
+
+import Storage from './storage.js';
+import expand from './expand.png';
+import trash from './trash.png';
+
+export default class Operations {
+  static getTaskList() {
+    const taskList = Storage.getData('taskList');
+    if (taskList === null) {
+      return;
+    }
+    const ul = document.getElementById('list');
+    ul.innerHTML = ' ';
+    for (let i = 0; i < taskList.length; i += 1) {
+      const li = document.createElement('li');
+      const cbx = document.createElement('input');
+      const span = document.createElement('input');
+      const anchor = document.createElement('a');
+      const img = document.createElement('img');
+      span.type = 'text';
+      span.id = taskList[i].index;
+      li.id = taskList[i].index;
+      anchor.id = taskList[i].index;
+      cbx.type = 'checkbox';
+      cbx.checked = taskList[i].completed;
+      cbx.id = taskList[i].index;
+      cbx.classList.add('checkbox');
+      cbx.addEventListener('change', (e) => this.cbxHandler(e));
+      span.addEventListener('change', (e) => this.updateValue(e));
+      span.addEventListener('click', (e) => this.changeIcon(e));
+      span.addEventListener('blur', (e) => this.resetIcon(e));
+      anchor.addEventListener('click', (e) => this.deleteFromList(e));
+      img.src = expand;
+      anchor.appendChild(img);
+      span.value = taskList[i].description;
+      li.appendChild(cbx);
+      li.appendChild(span);
+      li.appendChild(anchor);
+      ul.appendChild(li);
+    }
+  }
+
+  static addToList(taskObj) {
+    let deserializedTaskList = Storage.getData('taskList');
+
+    if (deserializedTaskList === null) {
+      deserializedTaskList = [];
+    }
+
+    if (deserializedTaskList !== null) {
+      deserializedTaskList.push(taskObj);
+      Storage.saveData(deserializedTaskList);
+    }
+
+    Operations.getTaskList();
+  }
+
+  static removeFromList() {
+    const taskList = Storage.getData('taskList');
+    const temp = taskList.filter((item) => item.completed !== true);
+    let i = 0;
+    temp.forEach((element) => {
+      i += 1;
+      element.index = i;
+    });
+    Storage.saveData(temp);
+    Operations.getTaskList();
+  }
+
+  static deleteFromList(e) {
+    const index = parseInt(e.target.parentElement.id, 10);
+    const taskList1 = Storage.getData('taskList');
+    const temp1 = taskList1.filter((item) => item.index !== index);
+    Storage.saveData(temp1);
+
+    const taskList = Storage.getData('taskList');
+    const temp = taskList;
+    let i = 0;
+    temp.forEach((element) => {
+      i += 1;
+      element.index = i;
+    });
+
+    Storage.saveData(temp);
+    Operations.getTaskList();
+  }
+
+  static cbxHandler(e) {
+    const index = parseInt(e.target.id, 10);
+    const taskListObj = Storage.getData('taskList');
+    const task = taskListObj.find((t) => t.index === index);
+    task.completed = e.target.checked;
+    Storage.saveData(taskListObj);
+  }
+
+  static updateValue(e) {
+    const index = parseInt(e.target.id, 10);
+    const taskListObj = Storage.getData('taskList');
+    const task = taskListObj.find((task) => task.index === index);
+    task.description = e.target.value;
+    Storage.saveData(taskListObj);
+  }
+
+  static changeIcon(e) {
+    e.target.parentElement.querySelector('img').src = trash;
+  }
+
+  static resetIcon(e) {
+    e.target.parentElement.querySelector('img').src = expand;
+  }
+}
+
+
+export default class Storage {
+  static saveData(dataObj) {
+    const dataString = JSON.stringify(dataObj);
+    localStorage.setItem('taskList', dataString);
+  }
+
+  static getData(key) {
+    return JSON.parse(localStorage.getItem(key));
+  }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To Do List</title>
+<script defer src="/WebPack_To-Do-List_Exercise/runtime.bundle.js"></script><script defer src="/WebPack_To-Do-List_Exercise/index.bundle.js"></script></head>
+<body>
+  <div class="center">
+    <header class="heading">
+      <span>Today's To Do List</span>
+      <a><img id="imageRefresh" src="./refresh.png" alt="refresh button comes here" title="refresh button"/></a>
+    </header>
+    
+    <section class="reading">
+      <!-- <h6>Add Chores</h6> -->
+      <form id="formTask">
+        <input id="task" type="text" placeholder="Add to your list..." />
+        <button type="submit" id="addTask">
+          <img id="imageEnter" src="./enter.png" alt="enter button comes here" title="enter button"/>
+        </button>
+      </form>
+      
+    </section>
+  
+    <section class="listing">
+      <!--<h6>List</h6>-->
+      <ul id="list">
+      </ul>
+    </section>
+
+    <section class="footing">
+      <!--<h6>Footer</h6>-->
+      <button id="remove" type="submit">Clear all completed</button>
+    </section>
+  </div>
+</body>
+</html>
+
+
+body {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 10px 10px;
+  font-family: 'Open Sans', 'Lucida Grande', tahoma, verdana, arial, sans-serif;
+  color: #545862;
+}
+
+.center {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px 4px rgb(0 0 0 / 15%);
+  margin: auto;
+}
+
+.reading input {
+  flex-grow: 2;
+  border: none;
+  outline: none;
+  font-style: italic;
+}
+
+.listing {
+  padding: 0;
+  border-bottom: 0;
+}
+
+.footing {
+  padding: 0;
+  border-bottom: 0;
+}
+
+.footing button {
+  flex-grow: 2;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+header,
+section {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 10px;
+}
+
+#formTask {
+  width: 100%;
+  display: flex;
+}
+
+#formTask button {
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+#task {
+  flex-grow: 2;
+}
+
+#list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0;
+  width: 100%;
+  margin: 0;
+}
+
+#list li {
+  display: flex;
+  flex-direction: row;
+  padding: 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+#list li input[type='text'] {
+  flex-grow: 2;
+  border: none;
+}
+
+#list li img {
+  height: 15px;
+}
+
+#list li a {
+  cursor: pointer;
+}
+
